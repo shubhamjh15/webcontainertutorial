@@ -1,103 +1,118 @@
-import Image from "next/image";
+"use client";
 
+import { useState, useRef, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
+import { SendIcon } from 'lucide-react';
+
+// --- Import the WebContainer IDE component you created ---
+import WebContainerIDE from '@/components/WebContainerIDE'; // Adjust this path if needed
+
+// --- Type definitions for our chat state ---
+type Message = {
+  role: 'user' | 'ai';
+  content: string;
+};
+
+// --- A new component for the AI Chat Panel ---
+function ChatPanel() {
+  const [messages, setMessages] = useState<Message[]>([
+    { role: 'ai', content: 'Hello! I can help you build a website. What would you like to create?' }
+  ]);
+  const [input, setInput] = useState('');
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Automatically scroll to the bottom when new messages are added
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      const scrollableView = scrollAreaRef.current.querySelector('div');
+      if (scrollableView) {
+        scrollableView.scrollTop = scrollableView.scrollHeight;
+      }
+    }
+  }, [messages]);
+
+  const handleSendMessage = () => {
+    if (input.trim() === '') return;
+
+    // Add the user's message to the chat
+    const newUserMessage: Message = { role: 'user', content: input };
+    setMessages(prev => [...prev, newUserMessage]);
+    setInput('');
+
+    // --- AI Response Simulation ---
+    // In a real app, you would make an API call here.
+    // For now, we'll just provide a canned response after a short delay.
+    setTimeout(() => {
+      const aiResponse: Message = {
+        role: 'ai',
+        content: "That's a great idea! I'm now generating the code for you. You can see the changes in the preview and code tabs on the right."
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    }, 1500);
+  };
+
+  return (
+    <div className="flex h-full flex-col bg-card">
+      <div className="border-b p-4">
+        <h2 className="text-lg font-semibold">AI Chat Assistant</h2>
+      </div>
+      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
+        <div className="space-y-4">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={cn(
+                'flex items-end gap-2',
+                message.role === 'user' ? 'justify-end' : 'justify-start'
+              )}
+            >
+              <div
+                className={cn(
+                  'max-w-xs rounded-lg px-4 py-2 text-sm md:max-w-md',
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                )}
+              >
+                {message.content}
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
+      <div className="border-t p-4">
+        <div className="flex items-center gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+            placeholder="Describe the component you want to build..."
+          />
+          <Button onClick={handleSendMessage}>
+            <SendIcon className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// --- The Main Page Layout ---
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <main className="flex h-screen w-full bg-background">
+      {/* Left Panel: AI Chat */}
+      <div className="w-1/3 border-r">
+        <ChatPanel />
+      </div>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+      {/* Right Panel: WebContainer IDE and Preview */}
+      <div className="w-2/3">
+        <WebContainerIDE />
+      </div>
+    </main>
   );
 }
